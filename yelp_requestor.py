@@ -2,18 +2,23 @@
 This must be run in Python 3.5+ due to asyncio.
 
 This class will perform async HTTP requests, putting the output in
-a queue for a writing thread to persist to storage.
+a queue for a writing to storage.
 
-We will write the pertinent information only. [TBD may dump it all]
-First request is to get:
- * Business ID
+First API Call is to get the Business ID:
+We only need to store the Business ID, however we will write the entire reply,
+since it is costly to query Yelp, and better to waste memory (<10MB) than time.
+
+Needed Inputs:  [data: output from inspection_parser.py, request: match]
+
+Second API call is to get the business details: 
+ * Rating, Category, Reviews, Price
  * Yelp formatted name
  * Coordinates (lat/long)
-These will be output to a file.
+ * The First Photo (image_url)
 
-Second to get the business details:
-Rating, Category, Reviews, Price, The First Photo (image_url)
+ Needed Inputs: [data: parsed output from Part 1, request: details]
 '''
+
 #https://pawelmhm.github.io/asyncio/python/aiohttp/2016/04/22/asyncio-aiohttp.html
 #https://aiohttp.readthedocs.io/en/stable/client_quickstart.html
 
@@ -29,7 +34,8 @@ import random
 import asyncio
 from aiohttp import ClientSession
 import aiohttp
-from multiprocessing import Process, Queue
+import multiprocessing
+from multiprocessing import Process
 import csv
 import time
 import argparse
@@ -42,16 +48,30 @@ def writer(dest_filename, queue, stop_token):
                 return
             dest_file.write("{}:::{}:::{}\n".format(line[0], line[1], line[2]))
 
-def create_params(row):
+'''
+Read the row from inspection_parser.py and format the params for the API call.
+Return something like:
+{"name" : "YOGURTLAND", "address1" : "304 SANTA MONICA BLVD", "city" : "SANTA MONICA", "state" : "CA", "country" : "US"}
+'''
+def create_params_matches(row):
     params = {}
     params["name"] = row[5]
     params["address1"] = row[2]
     params["city"] = row[3]
     params["state"] = "CA"
     params["country"] = "US"
-    #params = {"name" : "YOGURTLAND", "address1" : "304 SANTA MONICA BLVD", "city" : "SANTA MONICA", "state" : "CA", "country" : "US"}
     return params
 
+'''
+Read the output from yelp_requestor.py match run, and call the API.
+We only need to supply url/{id}. Not sure if params are needed.
+'''
+def create_params_biz(row):
+    params = {}
+    params[""] = row[1]
+    return params
+
+def 
 '''
 Apply throttling so we do not get QPS errors from Yelp.
 Follows the Token Bucket algorithm.
@@ -88,8 +108,7 @@ async def fetch(url, uid, params, session, bucket, queue):
         res_text = await response.text()
         queue.put([uid, response.status, res_text])
 
-async def run(data, queue):
-    url = "https://api.yelp.com/v3/businesses/matches"
+async def run(url, data, param_creator, queue):
     #url = "https://test.com/"
     tasks = []
     #semi = asyncio.Semaphore(2)
@@ -98,40 +117,53 @@ async def run(data, queue):
     # Client ID 2 lXj7hoG8VKcPXWFECjzs1A
     # API KEY 2
     # lyt0xVYdmqfFHAfEzZ4Bp2Sq2sBBg9j1iMVL581imdH3OO6NWwyG9gaCn1ALDutJ8UlpyX_hlfxA68w47s07TXdt2cmeAuo_QiPVeTDcCv5mYyWcDlbkmuEMWRJIW3Yx
-    #headers={"Authorization": "Bearer lyt0xVYdmqfFHAfEzZ4Bp2Sq2sBBg9j1iMVL581imdH3OO6NWwyG9gaCn1ALDutJ8UlpyX_hlfxA68w47s07TXdt2cmeAuo_QiPVeTDcCv5mYyWcDlbkmuEMWRJIW3Yx"}
+    # headers={"Authorization": "Bearer lyt0xVYdmqfFHAfEzZ4Bp2Sq2sBBg9j1iMVL581imdH3OO6NWwyG9gaCn1ALDutJ8UlpyX_hlfxA68w47s07TXdt2cmeAuo_QiPVeTDcCv5mYyWcDlbkmuEMWRJIW3Yx"}
     # Headers for my sams.arthur acct
-    #headers={"Authorization": "Bearer A61NH4bO5yCnxzogPUD6j5kucxY8Z-tFqN865_yoX04ExGpdQFRwCDhuWsgxqxBoQIOTBYBKH9ESB0KfvLSwJfTfXaNPo1gSKZ9f8Quop7xwDZdMU42kbeIhlJBCW3Yx"}
+    # headers={"Authorization": "Bearer A61NH4bO5yCnxzogPUD6j5kucxY8Z-tFqN865_yoX04ExGpdQFRwCDhuWsgxqxBoQIOTBYBKH9ESB0KfvLSwJfTfXaNPo1gSKZ9f8Quop7xwDZdMU42kbeIhlJBCW3Yx"}
     # headers 3:
     # cSTI74uyp1mQAwzO0LFKaQ
     # SU4DsuGcc5eJSRGkPZPhw87kECpMASX2IBKIZAp5emxhQ7KCgjAS6XhRZD4DIAXCu0spXvnvROjxqXE2FePRX197SrMzwxgDIp6BCz8jEUH-5t52ZeUvv4AB7dh1IW3Yx
-    #headers={"Authorization": "Bearer SU4DsuGcc5eJSRGkPZPhw87kECpMASX2IBKIZAp5emxhQ7KCjAS6XhRZD4DIAXCu0spXvnvROjxqXE2FePRX197SrMzwxgDIp6BCz8jEUH-5t52ZeUvv4AB7dh1IW3Yx"}
+    # headers={"Authorization": "Bearer SU4DsuGcc5eJSRGkPZPhw87kECpMASX2IBKIZAp5emxhQ7KCjAS6XhRZD4DIAXCu0spXvnvROjxqXE2FePRX197SrMzwxgDIp6BCz8jEUH-5t52ZeUvv4AB7dh1IW3Yx"}
     # headers 4:
     #   
     async with ClientSession(connector = aiohttp.TCPConnector(verify_ssl=False), headers=headers) as session:
         with open(data, 'r') as csvfile:
             reader = csv.reader(csvfile, delimiter=',')
             for row in reader:
-                task = asyncio.ensure_future(fetch(url, row[1], create_params(row), session, bucket, queue))
+                task = asyncio.ensure_future(fetch(url, row[1], param_creator(row), session, bucket, queue))
                 tasks.append(task)
         responses = asyncio.gather(*tasks)
         await responses
 
 def main():
-    STOP_TOKEN="!!!STOP!!!"
+    STOP_TOKEN = "!!!STOP!!!"
+    # The thread safe writing Queue.
+    queue = multiprocessing.Queue()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("prefix", help="which segment to run", type=str)
+    parser.add_argument("data_src", help="which data to run over", type=str)
+    parser.add_argument("request", help="which request to get (match or details) ", type=str)
     args = parser.parse_args()
 
-    prefix = args.prefix
-    queue = Queue()
+    data_src = args.data_src
+    # Grab the filename. Not robust, but works for my naming scheme.
+    data_prefix = (data_src.split("/")[-1]).split(".")[0]
+    if args.request == "match":
+        output_prefix = "yelp/yelp_requested_"
+        param_fn = create_params_matches
+        url = "https://api.yelp.com/v3/businesses/matches"
+    elif args.request = "details":
+        output_prefix = "yelp/details_"
+        param_fn = create_params_biz
+        url = "https://api.yelp.com/v3/businesses/"
 
-    writer_process = Process(target=writer, args=("yelp/yelp_requested_"+ prefix +".txt", queue, STOP_TOKEN))
+
+    writer_process = Process(target=writer, args=(output_prefix + data_prefix + ".txt", queue, STOP_TOKEN))
     writer_process.start()
 
-    data = "/Users/Arthur/Documents/Coding/health_scores/split/segments" + prefix
     loop = asyncio.get_event_loop()
-    future = asyncio.ensure_future(run(data, queue))
+
+    future = asyncio.ensure_future(run(url, data_src, param_fn, queue))
     loop.run_until_complete(future)
 
     # Posion Pill the Queue.
