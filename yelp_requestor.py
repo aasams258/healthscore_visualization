@@ -94,6 +94,7 @@ async def run(data, queue):
     tasks = []
     #semi = asyncio.Semaphore(2)
     bucket = TokenBucket()
+    # Oops I Know you can see my client codes. But I will reset these before anyone notices this repo is public. =)
     # Client ID 2 lXj7hoG8VKcPXWFECjzs1A
     # API KEY 2
     # lyt0xVYdmqfFHAfEzZ4Bp2Sq2sBBg9j1iMVL581imdH3OO6NWwyG9gaCn1ALDutJ8UlpyX_hlfxA68w47s07TXdt2cmeAuo_QiPVeTDcCv5mYyWcDlbkmuEMWRJIW3Yx
@@ -115,21 +116,28 @@ async def run(data, queue):
         responses = asyncio.gather(*tasks)
         await responses
 
-queue = Queue()
-STOP_TOKEN="!!!STOP!!!"
+def main():
+    STOP_TOKEN="!!!STOP!!!"
 
-parser = argparse.ArgumentParser()
-parser.add_argument("prefix", help="which segment to run", type=str)
-args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("prefix", help="which segment to run", type=str)
+    args = parser.parse_args()
 
-prefix = args.prefix
-writer_process = Process(target=writer, args=("yelp/yelp_requested_"+ prefix +".txt", queue, STOP_TOKEN))
-writer_process.start()
-data = "/Users/Arthur/Documents/Coding/health_scores/split/segments" + prefix
-loop = asyncio.get_event_loop()
-future = asyncio.ensure_future(run(data, queue))
-loop.run_until_complete(future)
+    prefix = args.prefix
+    queue = Queue()
 
-# Posion Pill the Queue.
-queue.put(STOP_TOKEN)
-writer_process.join()
+    writer_process = Process(target=writer, args=("yelp/yelp_requested_"+ prefix +".txt", queue, STOP_TOKEN))
+    writer_process.start()
+
+    data = "/Users/Arthur/Documents/Coding/health_scores/split/segments" + prefix
+    loop = asyncio.get_event_loop()
+    future = asyncio.ensure_future(run(data, queue))
+    loop.run_until_complete(future)
+
+    # Posion Pill the Queue.
+    queue.put(STOP_TOKEN)
+    writer_process.join()
+
+if __name__ == '__main__':
+   main()
+
