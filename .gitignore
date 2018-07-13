@@ -1,0 +1,5 @@
+# Ignore the data output files.
+data/
+split/
+tmp/
+yelp/
