@@ -12,6 +12,7 @@ output/
 yelp/
 split/
 data/
+matches_parsed/
 .Python
 build/
 develop-eggs/

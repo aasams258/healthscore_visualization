@@ -17,6 +17,9 @@ Second API call is to get the business details:
  * The First Photo (image_url)
 
  Needed Inputs: [data: parsed output from Part 1, request: details]
+
+ Due to the nature and limited supply of YELP API tokens, this is very manual
+ and I will not bother to make it streamlined.
 '''
 
 #https://pawelmhm.github.io/asyncio/python/aiohttp/2016/04/22/asyncio-aiohttp.html
@@ -67,11 +70,8 @@ Read the output from yelp_requestor.py match run, and call the API.
 We only need to supply url/{id}. Not sure if params are needed.
 '''
 def create_params_biz(row):
-    params = {}
-    params[""] = row[1]
-    return params
+    return {"uid": row[0], "id" : row[1]}
 
-def 
 '''
 Apply throttling so we do not get QPS errors from Yelp.
 Follows the Token Bucket algorithm.
@@ -108,29 +108,31 @@ async def fetch(url, uid, params, session, bucket, queue):
         res_text = await response.text()
         queue.put([uid, response.status, res_text])
 
+# Oops I Know you can see my client codes. But I will reset these before anyone notices this repo is public. =)
+# Headers for my sams.arthur acct
+#headers={"Authorization": "Bearer A61NH4bO5yCnxzogPUD6j5kucxY8Z-tFqN865_yoX04ExGpdQFRwCDhuWsgxqxBoQIOTBYBKH9ESB0KfvLSwJfTfXaNPo1gSKZ9f8Quop7xwDZdMU42kbeIhlJBCW3Yx"}
+# headers 3:
+# cSTI74uyp1mQAwzO0LFKaQ
+# SU4DsuGcc5eJSRGkPZPhw87kECpMASX2IBKIZAp5emxhQ7KCgjAS6XhRZD4DIAXCu0spXvnvROjxqXE2FePRX197SrMzwxgDIp6BCz8jEUH-5t52ZeUvv4AB7dh1IW3Yx
+headers={"Authorization": "Bearer SU4DsuGcc5eJSRGkPZPhw87kECpMASX2IBKIZAp5emxhQ7KCjAS6XhRZD4DIAXCu0spXvnvROjxqXE2FePRX197SrMzwxgDIp6BCz8jEUH-5t52ZeUvv4AB7dh1IW3Yx"}
+# Client ID 2 lXj7hoG8VKcPXWFECjzs1A
+# API KEY 2
+# lyt0xVYdmqfFHAfEzZ4Bp2Sq2sBBg9j1iMVL581imdH3OO6NWwyG9gaCn1ALDutJ8UlpyX_hlfxA68w47s07TXdt2cmeAuo_QiPVeTDcCv5mYyWcDlbkmuEMWRJIW3Yx
+#headers={"Authorization": "Bearer lyt0xVYdmqfFHAfEzZ4Bp2Sq2sBBg9j1iMVL581imdH3OO6NWwyG9gaCn1ALDutJ8UlpyX_hlfxA68w47s07TXdt2cmeAuo_QiPVeTDcCv5mYyWcDlbkmuEMWRJIW3Yx"}
 async def run(url, data, param_creator, queue):
     #url = "https://test.com/"
     tasks = []
     #semi = asyncio.Semaphore(2)
     bucket = TokenBucket()
-    # Oops I Know you can see my client codes. But I will reset these before anyone notices this repo is public. =)
-    # Client ID 2 lXj7hoG8VKcPXWFECjzs1A
-    # API KEY 2
-    # lyt0xVYdmqfFHAfEzZ4Bp2Sq2sBBg9j1iMVL581imdH3OO6NWwyG9gaCn1ALDutJ8UlpyX_hlfxA68w47s07TXdt2cmeAuo_QiPVeTDcCv5mYyWcDlbkmuEMWRJIW3Yx
-    # headers={"Authorization": "Bearer lyt0xVYdmqfFHAfEzZ4Bp2Sq2sBBg9j1iMVL581imdH3OO6NWwyG9gaCn1ALDutJ8UlpyX_hlfxA68w47s07TXdt2cmeAuo_QiPVeTDcCv5mYyWcDlbkmuEMWRJIW3Yx"}
-    # Headers for my sams.arthur acct
-    # headers={"Authorization": "Bearer A61NH4bO5yCnxzogPUD6j5kucxY8Z-tFqN865_yoX04ExGpdQFRwCDhuWsgxqxBoQIOTBYBKH9ESB0KfvLSwJfTfXaNPo1gSKZ9f8Quop7xwDZdMU42kbeIhlJBCW3Yx"}
-    # headers 3:
-    # cSTI74uyp1mQAwzO0LFKaQ
-    # SU4DsuGcc5eJSRGkPZPhw87kECpMASX2IBKIZAp5emxhQ7KCgjAS6XhRZD4DIAXCu0spXvnvROjxqXE2FePRX197SrMzwxgDIp6BCz8jEUH-5t52ZeUvv4AB7dh1IW3Yx
-    # headers={"Authorization": "Bearer SU4DsuGcc5eJSRGkPZPhw87kECpMASX2IBKIZAp5emxhQ7KCjAS6XhRZD4DIAXCu0spXvnvROjxqXE2FePRX197SrMzwxgDIp6BCz8jEUH-5t52ZeUvv4AB7dh1IW3Yx"}
-    # headers 4:
-    #   
     async with ClientSession(connector = aiohttp.TCPConnector(verify_ssl=False), headers=headers) as session:
         with open(data, 'r') as csvfile:
             reader = csv.reader(csvfile, delimiter=',')
             for row in reader:
-                task = asyncio.ensure_future(fetch(url, row[1], param_creator(row), session, bucket, queue))
+                # Ugh bad hack.
+                if param_creator == create_params_biz:
+                    task = asyncio.ensure_future(fetch(url + row[1], row[0], {}, session, bucket, queue))
+                else:
+                    task = asyncio.ensure_future(fetch(url, row[1], param_creator(row), session, bucket, queue))
                 tasks.append(task)
         responses = asyncio.gather(*tasks)
         await responses
@@ -152,11 +154,10 @@ def main():
         output_prefix = "yelp/yelp_requested_"
         param_fn = create_params_matches
         url = "https://api.yelp.com/v3/businesses/matches"
-    elif args.request = "details":
+    elif args.request == "details":
         output_prefix = "yelp/details_"
         param_fn = create_params_biz
         url = "https://api.yelp.com/v3/businesses/"
-
 
     writer_process = Process(target=writer, args=(output_prefix + data_prefix + ".txt", queue, STOP_TOKEN))
     writer_process.start()
@@ -173,3 +174,4 @@ def main():
 if __name__ == '__main__':
    main()
 
+#python3 yelp_requestor.py split/segmentsaqrst match

@@ -1,39 +1,42 @@
 import json
-
-# Case 1: Rate exceeeded; add to redo pile.
-# EE0000006:::429:::{"error": {"code": "TOO_MANY_REQUESTS_PER_SECOND", "description": "You have exceeded the queries-per-second limit for this endpoint. Try reducing the rate at which you make queries."}}
-# Case 2: Out of tokens; add to redo pile.
-# Case 3: No Reviews (So no data); mark it as such and put in third file.
-# EE0000721:::200:::{"businesses": []}
-# Case 4: It's Ok!
-# EE0000731:::200:::{"businesses": [{"id": "rMXaU2reT_fiJ-3Q6udZng", "alias": "taste-of-viet-harbor-city", "name": "Taste of Viet", "coordinates": {"latitude": 33.81653, "longitude": -118.3084}, "location": {"address1": "1650 Sepulveda Blvd", "address2": null, "address3": "", "city": "Harbor City", "zip_code": "90710", "country": "US", "state": "CA", "display_address": ["1650 Sepulveda Blvd", "Harbor City, CA 90710"]}, "phone": "+13103262889", "display_phone": "(310) 326-2889"}]}
+import glob
 
 '''
+Input: UID:::HTTP_RESPONSE:::YELP_API_JSON
 Output the UID along with Yelp's id.
-This will call 
 '''
-biz_data = ""
-re_parse = []
+def main(data_path):
+    ids = open("matches_parsed/biz_ids.csv", "w")
+    no_reviews = open("matches_parsed/no_reviews.csv", "w")
+    error = open("matches_parsed/error.csv", "w")
+    for data in glob.glob(data_path):
+        # Have this iterate the directory. 
+        with open(data, 'r') as biz_data:
+            for line in biz_data:
+                parts = line.split(":::")
+                if len(parts) != 3:
+                    print("bad split on {}".format(line))
+                    continue
+                # Case 1: Error, such as Rate Exceeeded or out of API Calls; add to redo pile.
+                # EE0000006:::429:::{"error": {"code": "...."}}
+                # Case 2: No Reviews (So no data); mark it as such and put in third file.
+                # EE0000721:::200:::{"businesses": []}
+                # Case 3: It's Ok!
+                # EE0000731:::200:::{"businesses": [....]}
+                if parts[1] == "200":
+                    resp = json.loads(parts[2])
+                    if len(resp["businesses"]) > 0:
+                        ids.write("{},{}\n".format(parts[0], resp["businesses"][0]["id"]))
+                    else: 
+                        no_reviews.write("{}\n".format(parts[0]))
+                        # No reviews case.
+                else:
+                    error.write("{},{}\n".format(parts[0], parts[1]))
+    
+    ids.close()
+    no_reviews.close()
+    error.close()
 
-ids = open("matches_parsed/biz_ids.csv")
-no_reviews = open("matches_parsed/no_reviews.csv")
-error = open("matches_parsed/error.csv")
+if __name__ == '__main__':
+    main("yelp/*.txt")
 
-with open(biz_data, 'r') as data:
-    parts = data.split(":::")
-    # Check if not 200
-    if parts[1] == "200":
-        resp = json.loads(parts[2])
-        if len(resp["businesses"]) > 0:
-            ids.write({})
-        else: 
-            # No reviews case.
-
-    else:
-        print "error {}".format(parts[1])
-        continue
-    parts[2] #Parse the json check it for issues
-   
-ids.close()
-no_reviews.close()
-error.close()
