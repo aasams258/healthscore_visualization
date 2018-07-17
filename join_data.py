@@ -95,5 +95,20 @@ def main(data_path):
             print(k)
     print("in: {} out: {}".format(i,n))
 
+# check 4 and 6th from end
+def check_unique(data):
+    uniques = {}
+    # Have this iterate the directory. 
+    with open(data, 'r') as biz_data:
+        health_reader = csv.reader(biz_data, delimiter=',')
+        for row in health_reader:
+            idx = row[4] # Row 15 is record id; row 4 is facultyID
+            if idx in uniques:
+                print ("error")
+            else:
+                uniques[row[4]] = ""
+    print("DONE")
+
 if __name__ == '__main__':
-   main("output/restaurants_indeps.csv")
+   #main("output/restaurants_indeps.csv")
+   check_unique("output/restaurants_indeps.csv")

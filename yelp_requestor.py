@@ -120,6 +120,8 @@ headers={"Authorization": "Bearer SU4DsuGcc5eJSRGkPZPhw87kECpMASX2IBKIZAp5emxhQ7
 # API KEY 2
 # lyt0xVYdmqfFHAfEzZ4Bp2Sq2sBBg9j1iMVL581imdH3OO6NWwyG9gaCn1ALDutJ8UlpyX_hlfxA68w47s07TXdt2cmeAuo_QiPVeTDcCv5mYyWcDlbkmuEMWRJIW3Yx
 #headers={"Authorization": "Bearer lyt0xVYdmqfFHAfEzZ4Bp2Sq2sBBg9j1iMVL581imdH3OO6NWwyG9gaCn1ALDutJ8UlpyX_hlfxA68w47s07TXdt2cmeAuo_QiPVeTDcCv5mYyWcDlbkmuEMWRJIW3Yx"}
+# key 4
+# HokL43SCJFNWkgiqoDEglWSgGCPj_vGrBHlYJRzvQe8l5q-HgCI78RLWqrO0UmbLDddmRyUI3qIvM81bR8iK2Nhy9X7-8nYsJoSw_q2r7jLkNlzhkTH5X2xl6WtNW3Yx
 async def run(url, data, param_creator, queue):
     #url = "https://test.com/"
     tasks = []
@@ -131,9 +133,10 @@ async def run(url, data, param_creator, queue):
             for row in reader:
                 # Ugh bad hack.
                 if param_creator == create_params_biz:
-                    task = asyncio.ensure_future(fetch(url + row[1], row[0], {}, session, bucket, queue))
+                    task = asyncio.ensure_future(fetch(url + row[1], row[1], {}, session, bucket, queue))
                 else:
-                    task = asyncio.ensure_future(fetch(url, row[1], param_creator(row), session, bucket, queue))
+                    # UID is the Record ID of the Row.
+                    task = asyncio.ensure_future(fetch(url, row[15], param_creator(row), session, bucket, queue))
                 tasks.append(task)
         responses = asyncio.gather(*tasks)
         await responses
@@ -152,11 +155,11 @@ def main():
     # Grab the filename. Not robust, but works for my naming scheme.
     data_prefix = (data_src.split("/")[-1]).split(".")[0]
     if args.request == "match":
-        output_prefix = "yelp/yelp_requested_"
+        output_prefix = "yelp_calls/yelp_requested_"
         param_fn = create_params_matches
         url = "https://api.yelp.com/v3/businesses/matches"
     elif args.request == "details":
-        output_prefix = "yelp/details_"
+        output_prefix = "yelp_calls/details_"
         param_fn = create_params_biz
         url = "https://api.yelp.com/v3/businesses/"
 
