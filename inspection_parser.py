@@ -100,6 +100,8 @@ def sort_market_or_restaurant(data):
     print "Restaurants {}, Markets {}".format(res, mkt)
 
 ''' 
+!!Note: The UUID is actually the serial number row. This needs to be redone.!!
+
 Take an unaltered inspections.csv file, and progressively filter it down.
 1. Sort 
 2. Unique-ify
