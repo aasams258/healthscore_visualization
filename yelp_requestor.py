@@ -84,7 +84,7 @@ class TokenBucket:
     MAX_TOKENS = 5
 
     def __init__(self):
-        self.tokens = self.MAX_TOKENS
+        self.tokens = 0
         self.last_refresh = time.monotonic()
 
     async def get_token(self):
@@ -115,19 +115,22 @@ async def fetch(url, uid, params, session, bucket, queue):
 # headers 3:
 # cSTI74uyp1mQAwzO0LFKaQ
 # SU4DsuGcc5eJSRGkPZPhw87kECpMASX2IBKIZAp5emxhQ7KCgjAS6XhRZD4DIAXCu0spXvnvROjxqXE2FePRX197SrMzwxgDIp6BCz8jEUH-5t52ZeUvv4AB7dh1IW3Yx
-headers={"Authorization": "Bearer SU4DsuGcc5eJSRGkPZPhw87kECpMASX2IBKIZAp5emxhQ7KCjAS6XhRZD4DIAXCu0spXvnvROjxqXE2FePRX197SrMzwxgDIp6BCz8jEUH-5t52ZeUvv4AB7dh1IW3Yx"}
+#headers={"Authorization": "Bearer SU4DsuGcc5eJSRGkPZPhw87kECpMASX2IBKIZAp5emxhQ7KCjAS6XhRZD4DIAXCu0spXvnvROjxqXE2FePRX197SrMzwxgDIp6BCz8jEUH-5t52ZeUvv4AB7dh1IW3Yx"}
 # Client ID 2 lXj7hoG8VKcPXWFECjzs1A
 # API KEY 2
 # lyt0xVYdmqfFHAfEzZ4Bp2Sq2sBBg9j1iMVL581imdH3OO6NWwyG9gaCn1ALDutJ8UlpyX_hlfxA68w47s07TXdt2cmeAuo_QiPVeTDcCv5mYyWcDlbkmuEMWRJIW3Yx
 #headers={"Authorization": "Bearer lyt0xVYdmqfFHAfEzZ4Bp2Sq2sBBg9j1iMVL581imdH3OO6NWwyG9gaCn1ALDutJ8UlpyX_hlfxA68w47s07TXdt2cmeAuo_QiPVeTDcCv5mYyWcDlbkmuEMWRJIW3Yx"}
 # key 4
-# HokL43SCJFNWkgiqoDEglWSgGCPj_vGrBHlYJRzvQe8l5q-HgCI78RLWqrO0UmbLDddmRyUI3qIvM81bR8iK2Nhy9X7-8nYsJoSw_q2r7jLkNlzhkTH5X2xl6WtNW3Yx
+#headers={"Authorization": "Bearer HokL43SCJFNWkgiqoDEglWSgGCPj_vGrBHlYJRzvQe8l5q-HgCI78RLWqrO0UmbLDddmRyUI3qIvM81bR8iK2Nhy9X7-8nYsJoSw_q2r7jLkNlzhkTH5X2xl6WtNW3Yx"}
+# Key 5   client ID ZJA9ZXqU0v5rLja9-cN5IQ
+headers={"Authorization": "Bearer XMUVIMYGd_ML1TmUNsiwq4KtDw0ShCxU2vSciaisd3pihJ205nmJbaNzr77dXv4qROzaPG3kAUbHeizYq5ciWYdb6edgUJG23oMMMjpziG-F4ZHououbiYXS7d9gW3Yx"}
 async def run(url, data, param_creator, queue):
     #url = "https://test.com/"
     tasks = []
     #semi = asyncio.Semaphore(2)
     bucket = TokenBucket()
-    async with ClientSession(connector = aiohttp.TCPConnector(verify_ssl=False), headers=headers) as session:
+    #in TCP connector: use_ssl=False
+    async with ClientSession(connector = aiohttp.TCPConnector(), headers=headers) as session:
         with open(data, 'r') as csvfile:
             reader = csv.reader(csvfile, delimiter=',')
             for row in reader:
@@ -135,10 +138,10 @@ async def run(url, data, param_creator, queue):
                 if param_creator == create_params_biz:
                     task = asyncio.ensure_future(fetch(url + row[1], row[1], {}, session, bucket, queue))
                 else:
-                    # UID is the Record ID of the Row.
+                    # UID is the Record ID of the Row (15).
                     task = asyncio.ensure_future(fetch(url, row[15], param_creator(row), session, bucket, queue))
                 tasks.append(task)
-        responses = asyncio.gather(*tasks)
+        responses = asyncio.gather(*tasks,return_exceptions=True)
         await responses
 
 def main():
@@ -154,6 +157,9 @@ def main():
     data_src = args.data_src
     # Grab the filename. Not robust, but works for my naming scheme.
     data_prefix = (data_src.split("/")[-1]).split(".")[0]
+    output_prefix = ""
+    url = ""
+    param_fn = ""
     if args.request == "match":
         output_prefix = "yelp_calls/yelp_requested_"
         param_fn = create_params_matches
