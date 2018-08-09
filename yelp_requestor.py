@@ -121,9 +121,9 @@ async def fetch(url, uid, params, session, bucket, queue):
 # lyt0xVYdmqfFHAfEzZ4Bp2Sq2sBBg9j1iMVL581imdH3OO6NWwyG9gaCn1ALDutJ8UlpyX_hlfxA68w47s07TXdt2cmeAuo_QiPVeTDcCv5mYyWcDlbkmuEMWRJIW3Yx
 #headers={"Authorization": "Bearer lyt0xVYdmqfFHAfEzZ4Bp2Sq2sBBg9j1iMVL581imdH3OO6NWwyG9gaCn1ALDutJ8UlpyX_hlfxA68w47s07TXdt2cmeAuo_QiPVeTDcCv5mYyWcDlbkmuEMWRJIW3Yx"}
 # key 4
-#headers={"Authorization": "Bearer HokL43SCJFNWkgiqoDEglWSgGCPj_vGrBHlYJRzvQe8l5q-HgCI78RLWqrO0UmbLDddmRyUI3qIvM81bR8iK2Nhy9X7-8nYsJoSw_q2r7jLkNlzhkTH5X2xl6WtNW3Yx"}
+headers={"Authorization": "Bearer HokL43SCJFNWkgiqoDEglWSgGCPj_vGrBHlYJRzvQe8l5q-HgCI78RLWqrO0UmbLDddmRyUI3qIvM81bR8iK2Nhy9X7-8nYsJoSw_q2r7jLkNlzhkTH5X2xl6WtNW3Yx"}
 # Key 5   client ID ZJA9ZXqU0v5rLja9-cN5IQ
-headers={"Authorization": "Bearer XMUVIMYGd_ML1TmUNsiwq4KtDw0ShCxU2vSciaisd3pihJ205nmJbaNzr77dXv4qROzaPG3kAUbHeizYq5ciWYdb6edgUJG23oMMMjpziG-F4ZHououbiYXS7d9gW3Yx"}
+#headers={"Authorization": "Bearer XMUVIMYGd_ML1TmUNsiwq4KtDw0ShCxU2vSciaisd3pihJ205nmJbaNzr77dXv4qROzaPG3kAUbHeizYq5ciWYdb6edgUJG23oMMMjpziG-F4ZHououbiYXS7d9gW3Yx"}
 async def run(url, data, param_creator, queue):
     #url = "https://test.com/"
     tasks = []
@@ -136,7 +136,7 @@ async def run(url, data, param_creator, queue):
             for row in reader:
                 # Ugh bad hack.
                 if param_creator == create_params_biz:
-                    task = asyncio.ensure_future(fetch(url + row[1], row[1], {}, session, bucket, queue))
+                    task = asyncio.ensure_future(fetch(url + row[1], row[0], {}, session, bucket, queue))
                 else:
                     # UID is the Record ID of the Row (15).
                     task = asyncio.ensure_future(fetch(url, row[15], param_creator(row), session, bucket, queue))

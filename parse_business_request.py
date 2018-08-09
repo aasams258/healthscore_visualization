@@ -38,5 +38,5 @@ def main(data_path):
     error.close()
 
 if __name__ == '__main__':
-    main("yelp/*.txt")
+    main("yelp_calls/*.txt")
 
