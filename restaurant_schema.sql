@@ -8,7 +8,7 @@ CREATE TABLE restaurants (
     name_alias TEXT,
     price TEXT,
     rating REAL,
-    review_count int,
+    review_count INTEGER,
     img_url TEXT,
     yelp_url TEXT,
     address1 TEXT,
@@ -20,7 +20,7 @@ CREATE TABLE restaurants (
     latitude REAL,
     yelp_id TEXT,
 
-    health_score int,
+    health_score INTEGER,
     health_grade TEXT,
     biz_desc TEXT,
     biz_owner TEXT,
@@ -36,4 +36,3 @@ CREATE TABLE categories (
     restaurant_id INTEGER NOT NULL,
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
 );
-
