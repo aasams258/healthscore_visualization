@@ -8,7 +8,9 @@
 import csv
 import json
 
-error_dict = {"malformed_row": 0, "non_200": 0, "empty_yelp_json": 0, "key_not_in_health": 0, "yelp_key_not_in_yelp": 0}
+error_dict = {"malformed_row": 0, "non_200": 0, "empty_yelp_json": 0,
+    "key_not_in_health": 0, "yelp_key_not_in_yelp": 0}
+
 count_dict = {"200_status": 0, "yelp_key_in_health": 0, "health_rows": 0}
 def load_healthscores(path):
     health = {}
@@ -17,7 +19,8 @@ def load_healthscores(path):
         health_reader = csv.reader(data, delimiter=',')
         for row in health_reader:
             if len(row) == 21:
-                data = {"score": row[16], "grade": row[8], "owner": row[10], "biz_desc": row[11], "inspection_date": row[0]}
+                data = {"score": row[16], "grade": row[8], "owner": row[10],
+                    "biz_desc": row[11], "inspection_date": row[0]}
                 health[row[15]] = data
                 count_dict["health_rows"] += 1
             else:
@@ -52,7 +55,7 @@ def merge(yelp, health):
 
 def writeToSQL():
     pass
-    
+
 def main():
     healthscores = load_healthscores("output/restaurants_indeps.csv")
    # print(healthscores.items()[0:10])
