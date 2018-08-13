@@ -49,21 +49,23 @@ def load_yelp(path):
 
 def merge(yelp, health):
     # Prepare for DB insertion.
-    #db = sqlite3.connect("LA_restaurants.db")
-    #cursor = db.cursor()
-    # Yelp is the smaller dataset.
+    db = sqlite3.connect("LA_restaurants.db")
+    cursor = db.cursor()
     for key, yelp_val in yelp.items():
         if key in health:
             count_dict["yelp_key_in_health"] += 1
             health_val = health[key]
-            insert_data(yelp_val, health_val)
-            return
+            insert_data(yelp_val, health_val, cursor)
         else:
             error_dict["yelp_key_not_in_yelp"] += 1
-    #db.commit()
-    #db.close()
+    db.commit()
+    db.close()
 
-def insert_data(yelp, health):
+'''
+Given a corresponding row from both yelp and health data,
+extract the pertinent data and insert into the DB using the supplied cursor.
+'''
+def insert_data(yelp, health, cursor):
     address = yelp.get("location")
     coordinates = yelp.get("coordinates")
     restaurants = { "name": yelp.get("name"),
@@ -88,30 +90,32 @@ def insert_data(yelp, health):
                     "inspection_date": health.get("inspection_date"),
                     "is_chain": IS_PARSING_CHAINS
                 }
-    categories = []
+    cursor.execute(
+    ''' INSERT INTO restaurants(name, name_alias, price, rating, review_count,
+        image_url, yelp_url, address1, address2, address3, city, zip_code, longitude,
+        latitude, yelp_id, health_score, health_grade, biz_desc, biz_owner, inspection_date, is_chain)
+        VALUES(:name, :name_alias, :price, :rating, :review_count,
+        :image_url, :yelp_url, :address1, :address2, :address3, :city, :zip_code, :longitude,
+        :latitude, :yelp_id, :health_score, :health_grade, :biz_desc, :biz_owner, :inspection_date, :is_chain)
+    ''' , restaurants)
+    restaurant_key = cursor.lastrowid
     for category in yelp.get("categories"):
-        # Append to a list.
-    # Insert Both Category and Restaurants
-    #cursor.execute(
-    '''INSERT INTO restaurants(name, name_alias, price, rating, review_count,
-    image_url, yelp_url, address1, address2, address3, city, zip_code, longitude,
-    latitude, yelp_id, health_score, health_grade, biz_desc, biz_owner, inspection_date, is_chain)
-    VALUES(:name, :name_alias, :price, :rating, :review_count,
-    :image_url, :yelp_url, :address1, :address2, :address3, :city, :zip_code, :longitude,
-    :latitude, :yelp_id, :health_score, :health_grade, :biz_desc, :biz_owner, :inspection_date, :is_chain)
-    '''
-    #, values)
-
-def writeToSQL():
-    pass
+        categories = {}
+        categories["category_alias"] = category.get("alias")
+        categories["category_name"] = category.get("title")
+        categories["restaurant_id"] = restaurant_key
+        cursor.execute(
+        '''INSERT INTO categories(category_alias, category_name, restaurant_id)
+           VALUES(:category_alias, :category_name, :restaurant_id)
+        ''' , categories)
 
 def main():
     healthscores = load_healthscores("output/restaurants_indeps.csv")
    # print(healthscores.items()[0:10])
     yelp = load_yelp("yelp_calls/details_all.txt")
-    y_KV = iter(yelp.items())
-    [print(next(y_KV)) for _ in range(5)]
-    #merge(yelp, healthscores)
+    # y_KV = iter(yelp.items())
+    # [print(next(y_KV)) for _ in range(5)]
+    merge(yelp, healthscores)
 
 if __name__ == '__main__':
     # Change this based on the dataset being parsed.
