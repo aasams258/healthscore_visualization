@@ -4,13 +4,15 @@
 
 CREATE TABLE restaurants (
     id INTEGER PRIMARY KEY autoincrement,
+    yelp_id TEXT,
     name TEXT,
     name_alias TEXT,
     price TEXT,
     rating REAL,
     review_count INTEGER,
-    img_url TEXT,
+    image_url TEXT,
     yelp_url TEXT,
+
     address1 TEXT,
     address2 TEXT,
     address3 TEXT,
@@ -18,8 +20,7 @@ CREATE TABLE restaurants (
     zip_code TEXT,
     longitude REAL,
     latitude REAL,
-    yelp_id TEXT,
-
+    
     health_score INTEGER,
     health_grade TEXT,
     biz_desc TEXT,

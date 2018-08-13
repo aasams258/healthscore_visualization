@@ -7,11 +7,14 @@
 '''
 import csv
 import json
+import sqlite3
 
 error_dict = {"malformed_row": 0, "non_200": 0, "empty_yelp_json": 0,
     "key_not_in_health": 0, "yelp_key_not_in_yelp": 0}
 
 count_dict = {"200_status": 0, "yelp_key_in_health": 0, "health_rows": 0}
+IS_PARSING_CHAINS = False
+
 def load_healthscores(path):
     health = {}
     o = 0
@@ -19,7 +22,7 @@ def load_healthscores(path):
         health_reader = csv.reader(data, delimiter=',')
         for row in health_reader:
             if len(row) == 21:
-                data = {"score": row[16], "grade": row[8], "owner": row[10],
+                data = {"health_score": row[16], "health_grade": row[8], "biz_owner": row[10],
                     "biz_desc": row[11], "inspection_date": row[0]}
                 health[row[15]] = data
                 count_dict["health_rows"] += 1
@@ -45,13 +48,59 @@ def load_yelp(path):
     return reviews
 
 def merge(yelp, health):
-    # Yelp will be the smaller dataset, as more likely for http errors
-    for key, val in yelp.items():
+    # Prepare for DB insertion.
+    #db = sqlite3.connect("LA_restaurants.db")
+    #cursor = db.cursor()
+    # Yelp is the smaller dataset.
+    for key, yelp_val in yelp.items():
         if key in health:
             count_dict["yelp_key_in_health"] += 1
-            pass
+            health_val = health[key]
+            insert_data(yelp_val, health_val)
+            return
         else:
             error_dict["yelp_key_not_in_yelp"] += 1
+    #db.commit()
+    #db.close()
+
+def insert_data(yelp, health):
+    address = yelp.get("location")
+    coordinates = yelp.get("coordinates")
+    restaurants = { "name": yelp.get("name"),
+                    "name_alias": yelp.get("alias"),
+                    "price": yelp.get("price"),
+                    "rating": yelp.get("rating"),
+                    "review_count": yelp.get(""),
+                    "image_url": yelp.get("image_url"),
+                    "yelp_url": yelp.get("url"),
+                    "yelp_id": yelp.get("id"),
+                    "address1": address.get("address1") if address else None,
+                    "address2": address.get("address2") if address else None,
+                    "address3": address.get("address3") if address else None,
+                    "city": address.get("city") if address else None,
+                    "zip_code": address.get("zip_code") if address else None,
+                    "longitude": coordinates.get("latitude") if coordinates else None,
+                    "latitude": coordinates.get("latitude") if coordinates else None,
+                    "health_score": health.get("health_score"),
+                    "health_grade": health.get("health_grade"),
+                    "biz_desc": health.get("biz_desc"),
+                    "biz_owner": health.get("biz_owner"),
+                    "inspection_date": health.get("inspection_date"),
+                    "is_chain": IS_PARSING_CHAINS
+                }
+    categories = []
+    for category in yelp.get("categories"):
+        # Append to a list.
+    # Insert Both Category and Restaurants
+    #cursor.execute(
+    '''INSERT INTO restaurants(name, name_alias, price, rating, review_count,
+    image_url, yelp_url, address1, address2, address3, city, zip_code, longitude,
+    latitude, yelp_id, health_score, health_grade, biz_desc, biz_owner, inspection_date, is_chain)
+    VALUES(:name, :name_alias, :price, :rating, :review_count,
+    :image_url, :yelp_url, :address1, :address2, :address3, :city, :zip_code, :longitude,
+    :latitude, :yelp_id, :health_score, :health_grade, :biz_desc, :biz_owner, :inspection_date, :is_chain)
+    '''
+    #, values)
 
 def writeToSQL():
     pass
@@ -60,9 +109,13 @@ def main():
     healthscores = load_healthscores("output/restaurants_indeps.csv")
    # print(healthscores.items()[0:10])
     yelp = load_yelp("yelp_calls/details_all.txt")
-    merge(yelp, healthscores)
+    y_KV = iter(yelp.items())
+    [print(next(y_KV)) for _ in range(5)]
+    #merge(yelp, healthscores)
 
 if __name__ == '__main__':
+    # Change this based on the dataset being parsed.
+    IS_PARSING_CHAINS = False
     main()
     print(count_dict)
     print(error_dict)
