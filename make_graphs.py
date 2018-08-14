@@ -43,25 +43,25 @@ def _load_data(categories):
     return(a_grades, b_grades, c_grades, category_names)
 
 def bar_plot():
-    category_alias = ["mexican", "chinese", "japanese", "pizza", "japanese", "burgers", 
-    "italian", "korean", "thai", "mediterranean", "indpak", "mideastern", "french"]
+    category_alias = ["mexican", "chinese", "japanese", "pizza", "burgers", 
+    "italian", "korean", "thai", "mediterranean", "indpak", "mideastern", "french", "tradamerican", "newamerican"]
     a, b, c, names = _load_data(category_alias)
     N = len(category_alias)
     ind = np.arange(N)    # the x locations for the groups
-    width = 0.35       # the width of the bars: can also be len(x) sequence
 
-    p1 = plt.bar(ind, a, width, color='#036AD1')
-    p2 = plt.bar(ind, b, width,
-                bottom=a, color='#3BB92A')
-    # Need to set the Y Axis starting point for C grades.
-    c_bottom = [x + y for x,y in zip(a, b)]
-    p3 = plt.bar(ind, c, width,
-                bottom=c_bottom, color='#FB9517')
+    height = .35
+    p1 = plt.barh(ind, a, height, color='#036AD1')
+    p2 = plt.barh(ind, b, height, left=a, color='#3BB92A')
+    # Need to set the x Axis starting point for C grades.
+    c_bottom = [x + y for x, y in zip(a, b)]
+    p3 = plt.barh(ind, c, height, left=c_bottom, color='#FB9517')
 
-    plt.ylabel('Restaurants')
     plt.title('Health Grade by Food Category')
-    plt.xticks(ind, names, rotation=-45)
-    plt.yticks(np.arange(0, 2500, 200))
+    plt.xlabel('Restaurant Count')
+    plt.xticks(np.arange(0, 2500, 200))
+    plt.ylabel('Food Category')
+    plt.yticks(ind, names)
+
     plt.legend((p1[0], p2[0], p3[0]), ('A', 'B', 'C'))
 
     plt.show()
