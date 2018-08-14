@@ -4,7 +4,7 @@ import sqlite3
 
 # Supply a list of category aliases to fetch.
 # Returns a tuple of (A, B, C, Category_Names) lists.
-def _load_data(categories):
+def _load_breakdown_data(categories):
     db = sqlite3.connect("LA_restaurants.db")
     cursor = db.cursor()
     grade_fetch_query = ''' 
@@ -45,11 +45,11 @@ def _load_data(categories):
 def bar_plot():
     category_alias = ["mexican", "chinese", "japanese", "pizza", "burgers", 
     "italian", "korean", "thai", "mediterranean", "indpak", "mideastern", "french", "tradamerican", "newamerican"]
-    a, b, c, names = _load_data(category_alias)
+    a, b, c, names = _load_breakdown_data(category_alias)
     N = len(category_alias)
-    ind = np.arange(N)    # the x locations for the groups
+    ind = np.arange(N)
 
-    height = .35
+    height = .8
     p1 = plt.barh(ind, a, height, color='#036AD1')
     p2 = plt.barh(ind, b, height, left=a, color='#3BB92A')
     # Need to set the x Axis starting point for C grades.
@@ -66,5 +66,26 @@ def bar_plot():
 
     plt.show()
 
+def grade_pie():
+    db = sqlite3.connect("LA_restaurants.db")
+    cursor = db.cursor()
+    query = '''
+        SELECT
+            restaurants.health_grade,
+            count(1) as ct
+        FROM restaurants
+        GROUP BY health_grade
+        ORDER BY ct DESC
+    '''
+    cursor.execute(query)
+    results = cursor.fetchall()[0:3]
+    labels, counts = zip(*results)
+    _, _, autotexts = plt.pie(counts, labels=labels, autopct='%1.1f%%', colors=['#036AD1', '#3BB92A', '#FB9517'])
+    plt.axis('equal')
+    for autotext in autotexts:
+        autotext.set_color('white')
+    plt.show()
+
 if __name__ == '__main__':
-    bar_plot()
+    #bar_plot()
+    grade_pie()
