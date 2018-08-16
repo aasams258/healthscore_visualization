@@ -48,21 +48,25 @@ def _load_breakdown_data(categories):
     return(a_grades, b_grades, c_grades, category_names)
 
 def bar_plot():
+    # Include "tradamerican", "newamerican"?
     category_alias = ["mexican", "chinese", "japanese", "pizza", "burgers", 
-    "italian", "korean", "thai", "mediterranean", "indpak", "mideastern", "french", "tradamerican", "newamerican"]
+    "italian", "korean", "thai", "mediterranean", "indpak", "mideastern", "french"]
     a, b, c, names = _load_breakdown_data(category_alias)
     idx = np.arange(len(category_alias))
-
+    denominator = [sum(x) for x in zip(a,b,c)]
+    divide = lambda x: float(x[0])/x[1] if x[1] != 0 else 0 
+    a_norm = [divide(x) * 100 for x in zip(a, denominator)]
+    b_norm = [divide(x) * 100 for x in zip(b, denominator)]
+    c_norm = [divide(x) * 100 for x in zip(c, denominator)]
     height = .8
-    p1 = plt.barh(idx, a, height, color='#036AD1')
-    p2 = plt.barh(idx, b, height, left=a, color='#3BB92A')
+    p1 = plt.barh(idx, c_norm, height, color=C_YELLOW)
+    p2 = plt.barh(idx, b_norm, height, left=c_norm, color=B_GREEN)
     # Need to set the x Axis starting point for C grades.
-    c_bottom = [x + y for x, y in zip(a, b)]
-    p3 = plt.barh(idx, c, height, left=c_bottom, color='#FB9517')
-
+    a_bottom = [x + y for x, y in zip(b_norm, c_norm)]
+    p3 = plt.barh(idx, a_norm, height, left=a_bottom, color=A_BLUE)
     plt.title('Health Grade by Food Category')
-    plt.xlabel('Restaurant Count')
-    plt.xticks(np.arange(0, 2500, 200))
+    plt.xlabel('Percentage with Grade')
+    plt.xticks(np.arange(0, 105, 5))
     plt.ylabel('Food Category')
     plt.yticks(idx, names)
 
@@ -137,7 +141,7 @@ def score_histogram():
     plt.title('Health Score Distribution')
     plt.xlabel('Health Score')
     #plt.yticks(np.arange(0, 100, 10))
-    plt.ylabel('Count')
+    plt.ylabel('Number of Restaurants with Score')
     plt.xticks(idx, scores)
     a_color = mpatches.Patch(color=A_BLUE, label='A Grade')
     b_color = mpatches.Patch(color=B_GREEN, label='B Grade')
@@ -146,7 +150,28 @@ def score_histogram():
 
     plt.show()
 
+def plot_lines():
+    db = sqlite3.connect("LA_restaurants.db")
+    cursor = db.cursor()
+    query_template = '''
+        SELECT
+            health_score,
+            count(1)
+        FROM restaurants
+        WHERE rating = ?
+        GROUP BY rating, health_score
+        ORDER BY health_score desc
+        ;
+    '''
+    for score in range(2, 10, 1):
+        cursor.execute(query_template, (score/2.0, ))
+        scores, counts = zip(*cursor.fetchall())
+        plt.plot(scores, counts)
+    #plt.plot([4,3,2,1], [1,4,9,16], 'bo')
+    plt.show()
+
 if __name__ == '__main__':
-    #bar_plot()
+    bar_plot()
     #grade_pie()
-    score_histogram()
+    #score_histogram()
+    #plot_lines()
