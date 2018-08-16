@@ -49,8 +49,8 @@ def _load_breakdown_data(categories):
 
 def bar_plot():
     # Include "tradamerican", "newamerican"?
-    category_alias = ["mexican", "chinese", "japanese", "pizza", "burgers", 
-    "italian", "korean", "thai", "mediterranean", "indpak", "mideastern", "french"]
+    category_alias = ["mexican", "chinese", "japanese", "korean", "thai", 
+    "pizza", "burgers", "italian", "french", "mediterranean", "indpak", "mideastern"]
     a, b, c, names = _load_breakdown_data(category_alias)
     idx = np.arange(len(category_alias))
     denominator = [sum(x) for x in zip(a,b,c)]
@@ -150,6 +150,22 @@ def score_histogram():
 
     plt.show()
 
+# RGB in 0,1 scale.
+# Num should be >2
+def gen_rg_color(num):
+    # Grab Num points between -1 and 1.
+    # Neg values are R and Pos Are G spectrum
+
+    # Start at full red, slowly step up Green.
+    # When at max green, step down red.
+
+    lst = []
+    for r in range(0,num,1):
+        print (r)
+        step = r/float(num)
+        lst.append((1-step, step, 0))
+    return lst
+
 def plot_lines():
     db = sqlite3.connect("LA_restaurants.db")
     cursor = db.cursor()
@@ -166,12 +182,13 @@ def plot_lines():
     for score in range(2, 10, 1):
         cursor.execute(query_template, (score/2.0, ))
         scores, counts = zip(*cursor.fetchall())
-        plt.plot(scores, counts)
+        plt.plot(scores, counts, 'o', c=(0,1,0))
     #plt.plot([4,3,2,1], [1,4,9,16], 'bo')
     plt.show()
 
 if __name__ == '__main__':
-    bar_plot()
+    #bar_plot()
     #grade_pie()
     #score_histogram()
     #plot_lines()
+    print (gen_rg_color(8))
