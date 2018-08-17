@@ -158,7 +158,7 @@ def gen_rg_color(num):
 
     # Start at full red, slowly step up Green.
     # When at max green, step down red.
-
+    # Odd include yellow, even no yellow.
     lst = []
     for r in range(0,num,1):
         print (r)
@@ -167,28 +167,62 @@ def gen_rg_color(num):
     return lst
 
 def plot_lines():
+    colors = {1: '#FF0000', 2: '#FF7700', 3: '#FFFF00', 4: '#7FFF00', 5: '#03a503'}
     db = sqlite3.connect("LA_restaurants.db")
     cursor = db.cursor()
-    query_template = '''
+    query_get_count = '''
         SELECT
             health_score,
             count(1)
         FROM restaurants
-        WHERE rating = ?
-        GROUP BY rating, health_score
+        GROUP BY health_score
+        ORDER BY health_score desc
+    '''
+    score_counts = cursor.execute(query_get_count).fetchall()
+    denominators = {}
+    for k,v in score_counts:
+        denominators[k] = float(v)
+    
+    query_get_scores = '''
+        SELECT
+            health_score,
+            count(1)
+        FROM restaurants
+        WHERE rating = ? or rating = ?
+        GROUP BY health_score
+        HAVING health_score > 69
         ORDER BY health_score desc
         ;
     '''
-    for score in range(2, 10, 1):
-        cursor.execute(query_template, (score/2.0, ))
-        scores, counts = zip(*cursor.fetchall())
-        plt.plot(scores, counts, 'o', c=(0,1,0))
+    for score in range(1, 6, 1):
+        half_score = score + .5
+        cursor.execute(query_get_scores, (score, half_score, ))
+        score_ratings = cursor.fetchall()
+        # Normalize ratings to %
+        scores, counts = [], []
+        for k,v in score_ratings:
+            scores.append(k)
+            counts.append(v/denominators.get(k, 1.0) * 100.0)
+        #scores, counts = zip(*cursor.fetchall())
+        plt.scatter(scores, counts, c=colors[score])
     #plt.plot([4,3,2,1], [1,4,9,16], 'bo')
+    plt.title('Health Score vs Yelp Review Score')
+    plt.xlabel('Health Score')
+    #plt.yticks(np.arange(0, 100, 10))
+    plt.ylabel('Percentage with Review Score')
+    handles = []
+    for k, v in colors.items():
+        if k < 5:
+            handles.append(mpatches.Patch(color=v, label='[{}, {}.5]'.format(k, k)))
+        if k == 5:
+            handles.append(mpatches.Patch(color=v, label='[{}]'.format(k)))
+    plt.legend(handles=handles, title="Review Score", ncol=5, loc='upper center')
+    plt.yticks(np.arange(0, 105, 10))
     plt.show()
 
 if __name__ == '__main__':
     #bar_plot()
     #grade_pie()
     #score_histogram()
-    #plot_lines()
-    print (gen_rg_color(8))
+    plot_lines()
+   # print (gen_rg_color(8))
