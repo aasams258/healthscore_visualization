@@ -1,8 +1,7 @@
 '''
 
 1. Strip down both the data to essentials.
-2. Put in dict with street address as key, value is [restaurant name, other_data]
-3. Join dicts on key, and output concatted value to a csv file.
+2. Insert it into DB.
 
 '''
 import csv
