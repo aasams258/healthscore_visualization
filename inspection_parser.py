@@ -3,18 +3,23 @@ import re
 import subprocess
 from collections import defaultdict
 
+'''
+Iterated the sorted [date, UID] rows, and output the most recent date.
+'''
 def unique_entries(data):
     with open('tmp/uniqued.csv', 'w') as output:
         writer = csv.writer(output, delimiter=',')
         with open(data, 'r') as csvfile:
             reader = csv.reader(csvfile, delimiter=',')
             prev_id = ''
-            # Iterated the sorted [date, UID] rows, and output the most recent date.
             for row in reader:
                 if prev_id != row[4]:
                     prev_id = row[4]
                     writer.writerow(row)
 
+'''
+Clean up the name for chain identification
+'''
 def clean_name(name):
     lower = name.lower()
     # Certain stores are inside another store, signified using @
@@ -50,8 +55,12 @@ def is_chain(cleaned, chain_set):
     else:
         return False
 
+''' 
+Identify which category data should fall in:
+ * chain or independent
+'''
 def classify_data(data, chain_set):
-    # want to sort into: chains, resteraunts, markets.
+    # Want to sort into: chains, restaurants, markets.
     chain_output = open('output/chains.csv', 'w')
     chain_writer = csv.writer(chain_output, delimiter=',')
     independent_output = open('output/independents.csv', 'w')
@@ -63,9 +72,8 @@ def classify_data(data, chain_set):
         for row in reader:
             cleaned = clean_name(row[5])
             row.append(cleaned)
-            # More clean up, as starbucks are formated strange, and some restaurants contain different chain phrasing
-            # BJ'S REstaurant, BLACK ANGUS, WINCHELL'S
-            if is_chain(cleaned, chain_set): # taco bell, subway, papa john's, panda express, panera, kfc, domino's
+            # More clean up, as some restaurants contain different chain phrasing
+            if is_chain(cleaned, chain_set): 
                 chain_writer.writerow(row)
                 chain += 1
             else:
@@ -75,8 +83,14 @@ def classify_data(data, chain_set):
     independent_output.close()
     print "Independents {}, Chains {}".format(indep, chain)
 
+'''
+Sort it into further categories, market or restaurant, based on the
+health board category
+
+Note may not be fully accurate, as certain convenience stores serve food.
+'''
 def sort_market_or_restaurant(data):
-    # want to sort into: restaurants, markets.
+
     res_output = open('output/restaurants_indeps.csv', 'w')
     res_writer = csv.writer(res_output, delimiter=',')
     mkt_output = open('output/markets_indeps.csv', 'w')
@@ -100,8 +114,6 @@ def sort_market_or_restaurant(data):
     print "Restaurants {}, Markets {}".format(res, mkt)
 
 ''' 
-!!Note: The UUID is actually the serial number row. This needs to be redone.!!
-
 Take an unaltered inspections.csv file, and progressively filter it down.
 1. Sort 
 2. Unique-ify
@@ -109,11 +121,8 @@ Take an unaltered inspections.csv file, and progressively filter it down.
 4a. Write Chains into a new file [Create Dataset chains.csv]
 4b. Write Independent Restaurant Dataset. [indepedents.csv]
 ?. Filter out Markets [Non Chain Markets aren't too intereting]
-There is a tmp file to write intermediate values.
 
-Kind of a pseudo MapReduce type implementation. 
-I did not want to load 200k items into an array, even though I do it for chains.
-Real MR was not used as we are only dealing with 200k rows, and this is simplier to iterate.
+There is a tmp file to write intermediate values, this can be deleted after the job.
 '''
 def main(path):
     #chains = find_chains(path)

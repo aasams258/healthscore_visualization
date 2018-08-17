@@ -2,7 +2,7 @@
 This must be run in Python 3.5+ due to asyncio.
 
 This class will perform async HTTP requests, putting the output in
-a queue for a writing to storage.
+a worker queue for writing to storage.
 
 First API Call is to get the Business ID:
 We only need to store the Business ID, however we will write the entire reply,
@@ -10,7 +10,7 @@ since it is costly to query Yelp, and better to waste memory (<10MB) than time.
 
 Needed Inputs:  [data: output from inspection_parser.py, request: match]
 
-Second API call is to get the business details: 
+Second API call is to get the business details. Examples: 
  * Rating, Category, Reviews, Price
  * Yelp formatted name
  * Coordinates (lat/long)
@@ -21,16 +21,10 @@ Second API call is to get the business details:
  Due to the nature and limited supply of YELP API tokens, this is very manual
  and I will not bother to make it streamlined.
 '''
+# Asyncio Ref:
+# https://pawelmhm.github.io/asyncio/python/aiohttp/2016/04/22/asyncio-aiohttp.html
 
-#https://pawelmhm.github.io/asyncio/python/aiohttp/2016/04/22/asyncio-aiohttp.html
-#https://aiohttp.readthedocs.io/en/stable/client_quickstart.html
-
-# # modified fetch function with semaphore
-# https://hackernoon.com/asyncio-for-the-working-python-developer-5c468e6e2e8e
-# https://medium.com/@yeraydiazdiaz/asyncio-coroutine-patterns-errors-and-cancellation-3bb422e961ff
-
-
-# need to rate limit:
+# Need to rate limit:
 # https://quentin.pradet.me/blog/how-do-you-rate-limit-calls-with-aiohttp.html
 
 import random

@@ -1,3 +1,8 @@
+'''
+This class generates the various graphs in the analysis.
+
+No real order here.
+'''
 import numpy as np
 from numpy import polyfit, poly1d # For lin regressions.
 import matplotlib.pyplot as plt
@@ -8,8 +13,23 @@ A_BLUE ='#036AD1'
 B_GREEN = '#3BB92A'
 C_YELLOW = '#FB9517'
 
-# Supply a list of category aliases to fetch.
-# Returns a tuple of (A, B, C, Category_Names) lists.
+def _get_color(val):
+    A_BLUE ='#036AD1'
+    B_GREEN = '#3BB92A'
+    C_YELLOW = '#FB9517'
+    if val == 'A':
+        return A_BLUE
+    if val == 'B':
+        return B_GREEN
+    if val == 'C':
+        return C_YELLOW
+    else:
+        return '#000000' # Black
+
+'''
+Supply a list of category aliases to fetch.
+Returns a tuple of (A, B, C, Category_Names) lists.
+'''
 def _load_breakdown_data(categories):
     db = sqlite3.connect("LA_restaurants.db")
     cursor = db.cursor()
@@ -23,9 +43,6 @@ def _load_breakdown_data(categories):
         WHERE categories.category_alias=? and restaurants.health_grade=?
         GROUP BY restaurants.health_grade 
     '''
-
-    #
-    # special categories combine them: "tradamerican", "newamerican",
     a_grades = []
     b_grades = []
     c_grades = []
@@ -48,7 +65,7 @@ def _load_breakdown_data(categories):
     db.close()
     return(a_grades, b_grades, c_grades, category_names)
 
-def bar_plot():
+def category_bar_plot():
     # Include "tradamerican", "newamerican"?
     category_alias = ["mexican", "chinese", "japanese", "korean", "thai", 
     "pizza", "burgers", "italian", "french", "mediterranean", "indpak", "mideastern"]
@@ -106,19 +123,6 @@ def grade_pie():
     plt.title('Health Grade Distribution')
     plt.show()
 
-def get_color(val):
-    A_BLUE ='#036AD1'
-    B_GREEN = '#3BB92A'
-    C_YELLOW = '#FB9517'
-    if val == 'A':
-        return A_BLUE
-    if val == 'B':
-        return B_GREEN
-    if val == 'C':
-        return C_YELLOW
-    else:
-        return '#000000' # Black
-
 def score_histogram():
     db = sqlite3.connect("LA_restaurants.db")
     cursor = db.cursor()
@@ -134,7 +138,7 @@ def score_histogram():
     '''
     cursor.execute(query)
     scores, grades, counts = zip(*cursor.fetchall())
-    colors = [get_color(x) for x in grades]
+    colors = [_get_color(x) for x in grades]
     idx = np.arange(len(scores))
     
     plt.bar(idx, counts, width=1, color=colors)
@@ -152,8 +156,10 @@ def score_histogram():
     plt.show()
 
 '''
-Do a linear regression on X,Y and return the
-R^2 value, as well as the Coefficents.
+Do a linear regression on X,Y and return the R^2 value, as well as the Coefficents.
+
+Returns ([coefficients], R2 error).
+Where coefficients are (a,b) for ax + b
 '''
 def regression(x,y):
     coefs = polyfit(x,y,1)
@@ -163,14 +169,14 @@ def regression(x,y):
     y_hat = sum(y)/float(len(y))
     SS_tot = sum(map(lambda y_i: (y_i - y_hat)**2, y))
     SS_res = sum(map(lambda y_i, f_i: (y_i - f_i)**2, y, y_f))
-    print ("R-Sq: {}".format(1.0-(SS_res/SS_tot)))
-    # To plot: plt.plot(x, y_f, 'b--')
+    return (coefs, 1.0-(SS_res/SS_tot))
 
 def yelp_score_distro():
     colors = {1: '#FF0000', 2: '#FF7700', 3: '#FFFF00', 4: '#7FFF00', 5: '#03a503'}
     db = sqlite3.connect("LA_restaurants.db")
     cursor = db.cursor()
-    # Query for the amount of ratings there are.
+    # Query for the count of ratings per health score.
+    # Used for normalization.
     query_get_count = '''
         SELECT
             health_score,
@@ -199,7 +205,7 @@ def yelp_score_distro():
         half_score = score + .5
         cursor.execute(query_get_scores, (score, half_score, ))
         score_ratings = cursor.fetchall()
-        # Normalize ratings to %
+        # Normalize ratings to %'s.
         scores, counts = [], []
         for k,v in score_ratings:
             scores.append(k)
@@ -252,10 +258,11 @@ def avg_yelp_score_health_score():
 
     plt.plot(keys, avg_scores, 'b-')
     plt.show()
+
+# Comment which graphs you would like generated.
 if __name__ == '__main__':
-    #bar_plot()
+    #category_bar_plot()
     #grade_pie()
     #score_histogram()
     yelp_score_distro()
    # avg_yelp_score_health_score()
-   # print (gen_rg_color(8))

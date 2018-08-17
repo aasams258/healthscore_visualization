@@ -1,7 +1,9 @@
 '''
 
-1. Strip down both the data to essentials.
-2. Insert it into DB.
+Strip down both the data to essentials.
+Insert it into an existsing DB, in this case one created from restaurant_schema.sql.
+
+If we ever run this for chains/markets, change the value IS_PARSING_CHAINS
 
 '''
 import csv
@@ -110,10 +112,7 @@ def insert_data(yelp, health, cursor):
 
 def main():
     healthscores = load_healthscores("output/restaurants_indeps.csv")
-   # print(healthscores.items()[0:10])
     yelp = load_yelp("yelp_calls/details_all.txt")
-    # y_KV = iter(yelp.items())
-    # [print(next(y_KV)) for _ in range(5)]
     merge(yelp, healthscores)
 
 if __name__ == '__main__':
@@ -122,5 +121,3 @@ if __name__ == '__main__':
     main()
     print(count_dict)
     print(error_dict)
-   #main("output/restaurants_indeps.csv")
-   #check_unique("output/restaurants_indeps.csv")
