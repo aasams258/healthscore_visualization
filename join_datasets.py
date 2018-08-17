@@ -72,7 +72,7 @@ def insert_data(yelp, health, cursor):
                     "name_alias": yelp.get("alias"),
                     "price": yelp.get("price"),
                     "rating": yelp.get("rating"),
-                    "review_count": yelp.get(""),
+                    "review_count": yelp.get("review_count"),
                     "image_url": yelp.get("image_url"),
                     "yelp_url": yelp.get("url"),
                     "yelp_id": yelp.get("id"),

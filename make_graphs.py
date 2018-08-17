@@ -1,4 +1,5 @@
 import numpy as np
+from numpy import polyfit, poly1d # For lin regressions.
 import matplotlib.pyplot as plt
 import sqlite3
 import matplotlib.patches as mpatches
@@ -150,30 +151,30 @@ def score_histogram():
 
     plt.show()
 
-# RGB in 0,1 scale.
-# Num should be >2
-def gen_rg_color(num):
-    # Grab Num points between -1 and 1.
-    # Neg values are R and Pos Are G spectrum
+'''
+Do a linear regression on X,Y and return the
+R^2 value, as well as the Coefficents.
+'''
+def regression(x,y):
+    coefs = polyfit(x,y,1)
+    regres_fn = poly1d(coefs)
+    y_f = [regres_fn(x_i) for x_i in x]
+    # Variables for R-Square computation.
+    y_hat = sum(y)/float(len(y))
+    SS_tot = sum(map(lambda y_i: (y_i - y_hat)**2, y))
+    SS_res = sum(map(lambda y_i, f_i: (y_i - f_i)**2, y, y_f))
+    print ("R-Sq: {}".format(1.0-(SS_res/SS_tot)))
+    # To plot: plt.plot(x, y_f, 'b--')
 
-    # Start at full red, slowly step up Green.
-    # When at max green, step down red.
-    # Odd include yellow, even no yellow.
-    lst = []
-    for r in range(0,num,1):
-        print (r)
-        step = r/float(num)
-        lst.append((1-step, step, 0))
-    return lst
-
-def plot_lines():
+def yelp_score_distro():
     colors = {1: '#FF0000', 2: '#FF7700', 3: '#FFFF00', 4: '#7FFF00', 5: '#03a503'}
     db = sqlite3.connect("LA_restaurants.db")
     cursor = db.cursor()
+    # Query for the amount of ratings there are.
     query_get_count = '''
         SELECT
             health_score,
-            count(1)
+            count(rating)
         FROM restaurants
         GROUP BY health_score
         ORDER BY health_score desc
@@ -186,7 +187,7 @@ def plot_lines():
     query_get_scores = '''
         SELECT
             health_score,
-            count(1)
+            count(rating)
         FROM restaurants
         WHERE rating = ? or rating = ?
         GROUP BY health_score
@@ -203,26 +204,58 @@ def plot_lines():
         for k,v in score_ratings:
             scores.append(k)
             counts.append(v/denominators.get(k, 1.0) * 100.0)
-        #scores, counts = zip(*cursor.fetchall())
         plt.scatter(scores, counts, c=colors[score])
-    #plt.plot([4,3,2,1], [1,4,9,16], 'bo')
+    
     plt.title('Health Score vs Yelp Review Score')
     plt.xlabel('Health Score')
-    #plt.yticks(np.arange(0, 100, 10))
     plt.ylabel('Percentage with Review Score')
     handles = []
     for k, v in colors.items():
-        if k < 5:
-            handles.append(mpatches.Patch(color=v, label='[{}, {}.5]'.format(k, k)))
-        if k == 5:
-            handles.append(mpatches.Patch(color=v, label='[{}]'.format(k)))
+        handles.append(mpatches.Patch(color=v, label='{}'.format(k)))
     plt.legend(handles=handles, title="Review Score", ncol=5, loc='upper center')
     plt.yticks(np.arange(0, 105, 10))
     plt.show()
 
+def avg_yelp_score_health_score():
+    colors = {1: '#FF0000', 2: '#FF7700', 3: '#FFFF00', 4: '#7FFF00', 5: '#03a503'}
+    db = sqlite3.connect("LA_restaurants.db")
+    cursor = db.cursor()
+    # Query for the amount of ratings there are.
+    query_get_count = '''
+        SELECT
+            health_score,
+            count(rating)
+        FROM restaurants
+        GROUP BY health_score
+        ORDER BY health_score desc
+    '''
+    score_counts = cursor.execute(query_get_count).fetchall()
+    denominators = {}
+    for k,v in score_counts:
+        denominators[k] = float(v)
+    
+    query_score_sum = '''
+            SELECT
+            health_score,
+            sum(rating)
+        FROM restaurants
+        GROUP BY health_score
+        HAVING health_score > 69
+        ORDER BY health_score desc
+        '''
+    score_sums = cursor.execute(query_score_sum).fetchall()
+    avg_scores = []
+    keys = []
+    for k,v in score_sums:
+        avg_scores.append(v/denominators.get(k, 1.0))
+        keys.append(k)
+
+    plt.plot(keys, avg_scores, 'b-')
+    plt.show()
 if __name__ == '__main__':
     #bar_plot()
     #grade_pie()
     #score_histogram()
-    plot_lines()
+    yelp_score_distro()
+   # avg_yelp_score_health_score()
    # print (gen_rg_color(8))
