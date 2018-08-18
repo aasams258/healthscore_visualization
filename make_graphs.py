@@ -218,12 +218,11 @@ def yelp_score_distro():
     handles = []
     for k, v in colors.items():
         handles.append(mpatches.Patch(color=v, label='{}'.format(k)))
-    plt.legend(handles=handles, title="Review Score", ncol=5, loc='upper center')
+    plt.legend(handles=handles, title="Yelp Review Score", ncol=5, loc='upper center')
     plt.yticks(np.arange(0, 105, 10))
     plt.show()
 
 def avg_yelp_score_health_score():
-    colors = {1: '#FF0000', 2: '#FF7700', 3: '#FFFF00', 4: '#7FFF00', 5: '#03a503'}
     db = sqlite3.connect("LA_restaurants.db")
     cursor = db.cursor()
     # Query for the amount of ratings there are.
@@ -255,8 +254,21 @@ def avg_yelp_score_health_score():
     for k,v in score_sums:
         avg_scores.append(v/denominators.get(k, 1.0))
         keys.append(k)
+   
 
-    plt.plot(keys, avg_scores, 'b-')
+    plt.title('Average Yelp Review Score Per Health Score')
+    plt.xlabel('Health Score')
+    plt.ylabel('Average Review Score')
+    plt.scatter(keys, avg_scores)
+    # Plot a Regression.
+    coefs, r_sq = regression(keys, avg_scores)
+    regres_fn = poly1d(coefs)
+    y_f = [regres_fn(x_i) for x_i in keys]
+    print (r_sq)
+    plt.plot(keys, y_f, 'b-')
+    plt.yticks(np.arange(3, 5, .5))
+    plt.text(97, 3.1, "R^2 = {0:.2f}".format(r_sq), style='italic',
+        bbox={'facecolor':'red', 'alpha':0.5, 'pad':5})
     plt.show()
 
 # Comment which graphs you would like generated.
@@ -264,5 +276,5 @@ if __name__ == '__main__':
     #category_bar_plot()
     #grade_pie()
     #score_histogram()
-    yelp_score_distro()
-   # avg_yelp_score_health_score()
+    #yelp_score_distro()
+    avg_yelp_score_health_score()
