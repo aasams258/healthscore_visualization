@@ -169,6 +169,9 @@ def regression(x,y):
     y_hat = sum(y)/float(len(y))
     SS_tot = sum(map(lambda y_i: (y_i - y_hat)**2, y))
     SS_res = sum(map(lambda y_i, f_i: (y_i - f_i)**2, y, y_f))
+    print(x)
+    print()
+    print(list(map(lambda y_i, f_i: (y_i - f_i), y, y_f)))
     return (coefs, 1.0-(SS_res/SS_tot))
 
 def yelp_score_distro():
@@ -271,10 +274,58 @@ def avg_yelp_score_health_score():
         bbox={'facecolor':'red', 'alpha':0.5, 'pad':5})
     plt.show()
 
+def review_vs_score_scatter():
+    db = sqlite3.connect("LA_restaurants.db")
+    cursor = db.cursor()
+    # Query for the amount of ratings there are.
+    query_get_count = '''
+        SELECT
+            health_score,
+            count(1)
+        FROM restaurants
+        GROUP BY health_score
+        ORDER BY health_score desc
+    '''
+    score_counts = cursor.execute(query_get_count).fetchall()
+    denominators = {}
+    for k,v in score_counts:
+        denominators[k] = float(v)
+
+    query_counts = '''
+        SELECT
+         health_score,
+         SUM(review_count)
+        FROM restaurants
+        GROUP BY health_score
+        ORDER BY health_score desc;
+        '''
+    review_sums = cursor.execute(query_counts).fetchall()
+    avg_counts = []
+    keys = []
+    for k,v in review_sums:
+        avg_counts.append(v/denominators.get(k, 1.0))
+        keys.append(k)
+
+    plt.title('Average Yelp Reviews Per Health Score')
+    plt.xlabel('Health Score')
+    plt.ylabel('Average Reviews')
+    plt.scatter(keys, avg_counts)
+    # Plot a Regression.
+    # coefs, r_sq = regression(keys, avg_scores)
+    # regres_fn = poly1d(coefs)
+    # y_f = [regres_fn(x_i) for x_i in keys]
+    # print (r_sq)
+    # plt.plot(keys, y_f, 'b-')
+    # plt.yticks(np.arange(3, 5, .5))
+    # plt.text(97, 3.1, "R^2 = {0:.2f}".format(r_sq), style='italic',
+    #     bbox={'facecolor':'red', 'alpha':0.5, 'pad':5})
+    plt.show()
+    
 # Comment which graphs you would like generated.
 if __name__ == '__main__':
     #category_bar_plot()
     #grade_pie()
     #score_histogram()
     #yelp_score_distro()
-    avg_yelp_score_health_score()
+    #avg_yelp_score_health_score()
+    review_vs_score_scatter()
