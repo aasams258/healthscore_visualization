@@ -306,9 +306,9 @@ def review_vs_score_scatter():
         avg_counts.append(v/denominators.get(k, 1.0))
         keys.append(k)
 
-    plt.title('Average Yelp Reviews Per Health Score')
+    plt.title('Yelp Reviews vs Health Score')
     plt.xlabel('Health Score')
-    plt.ylabel('Average Reviews')
+    plt.ylabel('Average Number of Reviews')
     plt.scatter(keys, avg_counts)
     # Plot a Regression.
     # coefs, r_sq = regression(keys, avg_scores)
@@ -320,7 +320,11 @@ def review_vs_score_scatter():
     # plt.text(97, 3.1, "R^2 = {0:.2f}".format(r_sq), style='italic',
     #     bbox={'facecolor':'red', 'alpha':0.5, 'pad':5})
     plt.show()
-    
+
+def prices():
+    pass
+    # Graph, Grade VS Price, where its normalized by total amount in that price range.
+    # EG: $$$$ are 70% A, 30% B .
 # Comment which graphs you would like generated.
 if __name__ == '__main__':
     #category_bar_plot()

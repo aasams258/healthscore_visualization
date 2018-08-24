@@ -105,11 +105,11 @@ async def fetch(url, uid, params, session, bucket, queue):
 
 # Oops I Know you can see my client codes. But I will reset these before anyone notices this repo is public. =)
 # Headers for my sams.arthur acct
-#headers={"Authorization": "Bearer A61NH4bO5yCnxzogPUD6j5kucxY8Z-tFqN865_yoX04ExGpdQFRwCDhuWsgxqxBoQIOTBYBKH9ESB0KfvLSwJfTfXaNPo1gSKZ9f8Quop7xwDZdMU42kbeIhlJBCW3Yx"}
+# headers={"Authorization": "Bearer A61NH4bO5yCnxzogPUD6j5kucxY8Z-tFqN865_yoX04ExGpdQFRwCDhuWsgxqxBoQIOTBYBKH9ESB0KfvLSwJfTfXaNPo1gSKZ9f8Quop7xwDZdMU42kbeIhlJBCW3Yx"}
 # headers 3:
 # cSTI74uyp1mQAwzO0LFKaQ
 # SU4DsuGcc5eJSRGkPZPhw87kECpMASX2IBKIZAp5emxhQ7KCgjAS6XhRZD4DIAXCu0spXvnvROjxqXE2FePRX197SrMzwxgDIp6BCz8jEUH-5t52ZeUvv4AB7dh1IW3Yx
-#headers={"Authorization": "Bearer SU4DsuGcc5eJSRGkPZPhw87kECpMASX2IBKIZAp5emxhQ7KCjAS6XhRZD4DIAXCu0spXvnvROjxqXE2FePRX197SrMzwxgDIp6BCz8jEUH-5t52ZeUvv4AB7dh1IW3Yx"}
+# headers={"Authorization": "Bearer SU4DsuGcc5eJSRGkPZPhw87kECpMASX2IBKIZAp5emxhQ7KCjAS6XhRZD4DIAXCu0spXvnvROjxqXE2FePRX197SrMzwxgDIp6BCz8jEUH-5t52ZeUvv4AB7dh1IW3Yx"}
 # Client ID 2 lXj7hoG8VKcPXWFECjzs1A
 # API KEY 2
 # lyt0xVYdmqfFHAfEzZ4Bp2Sq2sBBg9j1iMVL581imdH3OO6NWwyG9gaCn1ALDutJ8UlpyX_hlfxA68w47s07TXdt2cmeAuo_QiPVeTDcCv5mYyWcDlbkmuEMWRJIW3Yx
@@ -177,5 +177,3 @@ def main():
 
 if __name__ == '__main__':
    main()
-
-#python3 yelp_requestor.py split/segmentsaqrst match
