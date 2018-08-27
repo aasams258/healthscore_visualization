@@ -54,8 +54,7 @@ def _load_breakdown_data(categories):
             cursor.execute(grade_fetch_query, (category, grade_tuple[0],))
             result = cursor.fetchone()
             if result:
-                if len(result) < 3:
-                    print (result)
+                assert en(result) == 3
                 grades_list.append(result[2])
                 # Get the proper name.
                 formal_name = result[1]
@@ -309,6 +308,7 @@ def review_vs_score_scatter():
     plt.scatter(keys, avg_counts)
     plt.show()
 
+
 def prices():
     db = sqlite3.connect("LA_restaurants.db")
     cursor = db.cursor()
@@ -328,23 +328,34 @@ def prices():
         prices = cursor.execute(price_counts, (val[0],)).fetchall()
         assert len(prices) == 4
         data_pts = float(sum([p[1] for p in prices]))
-        val[1] = [p[1]/data_pts for p in prices]
+        for p in prices:
+            val[1].append(p[1]/data_pts)
         # print(data_pts)
         # for p in prices:
         #     prior_value = 0
         #     if a_distro:
         #         prior_value = a_distro[-1]
         #     a_distro.append(p[1]/data_pts + prior_value)
-
-    idx = np.arange(4)
+    idx = np.arange(3)
     height = .8
-    for dist in grade_distros
-        plt.barh(idx, dist[1], height, color=C_YELLOW)
+
+    price_abc = list(zip(grade_distros[0][1], grade_distros[1][1], grade_distros[2][1]))
+    print(price_abc)
+    print(price_abc[0])
+    bottom = (0,0,0)
+    colors = {1: '#FF0000', 2: '#FF7700', 3: '#FFFF00', 4: '#7FFF00', 5: '#03a503'}
+    for s in range(0, len(list(price_abc))):
+        plt.barh(idx, price_abc[s], height, left=bottom, color=colors[s+1])
+        bottom = [sum(x) for x in zip(bottom, price_abc[s])]
+        
 
     db.close()
     plt.title('Yelp Price vs Health Grade')
-    plt.xlabel('Health Score')
-    plt.ylabel('Average Number of Reviews')
+    plt.xlabel('Percent with Price')
+    plt.ylabel('Grade')
+    # , ['$', "$$", '$$$', '$$$$']
+    plt.yticks(idx, ["A", "B", "C"])
+    plt.xticks(np.arange(0, 1.1, .1))
     plt.show()
     # Graph, Grade VS Price, where its normalized by total amount in that price range.
     # EG: $$$$ are 70% A, 30% B .
