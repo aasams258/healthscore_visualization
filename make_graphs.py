@@ -106,6 +106,7 @@ def grade_pie():
     '''
     cursor.execute(query)
     results = cursor.fetchall()
+    db.close()
     labels, counts = zip(*results)
     _, texts, autotexts = plt.pie(counts, labels=labels, autopct='%1.1f%%', colors=['#036AD1', '#3BB92A', '#FB9517'])
     plt.axis('equal')
@@ -169,9 +170,6 @@ def regression(x,y):
     y_hat = sum(y)/float(len(y))
     SS_tot = sum(map(lambda y_i: (y_i - y_hat)**2, y))
     SS_res = sum(map(lambda y_i, f_i: (y_i - f_i)**2, y, y_f))
-    print(x)
-    print()
-    print(list(map(lambda y_i, f_i: (y_i - f_i), y, y_f)))
     return (coefs, 1.0-(SS_res/SS_tot))
 
 def yelp_score_distro():
@@ -214,7 +212,7 @@ def yelp_score_distro():
             scores.append(k)
             counts.append(v/denominators.get(k, 1.0) * 100.0)
         plt.scatter(scores, counts, c=colors[score])
-    
+    db.close()
     plt.title('Health Score vs Yelp Review Score')
     plt.xlabel('Health Score')
     plt.ylabel('Percentage with Review Score')
@@ -258,7 +256,7 @@ def avg_yelp_score_health_score():
         avg_scores.append(v/denominators.get(k, 1.0))
         keys.append(k)
    
-
+    db.close()
     plt.title('Average Yelp Review Score Per Health Score')
     plt.xlabel('Health Score')
     plt.ylabel('Average Review Score')
@@ -267,7 +265,6 @@ def avg_yelp_score_health_score():
     coefs, r_sq = regression(keys, avg_scores)
     regres_fn = poly1d(coefs)
     y_f = [regres_fn(x_i) for x_i in keys]
-    print (r_sq)
     plt.plot(keys, y_f, 'b-')
     plt.yticks(np.arange(3, 5, .5))
     plt.text(97, 3.1, "R^2 = {0:.2f}".format(r_sq), style='italic',
@@ -305,26 +302,53 @@ def review_vs_score_scatter():
     for k,v in review_sums:
         avg_counts.append(v/denominators.get(k, 1.0))
         keys.append(k)
-
-    plt.title('Yelp Reviews vs Health Score')
+    db.close()
+    plt.title('Yelp Review Count vs Health Score')
     plt.xlabel('Health Score')
     plt.ylabel('Average Number of Reviews')
     plt.scatter(keys, avg_counts)
-    # Plot a Regression.
-    # coefs, r_sq = regression(keys, avg_scores)
-    # regres_fn = poly1d(coefs)
-    # y_f = [regres_fn(x_i) for x_i in keys]
-    # print (r_sq)
-    # plt.plot(keys, y_f, 'b-')
-    # plt.yticks(np.arange(3, 5, .5))
-    # plt.text(97, 3.1, "R^2 = {0:.2f}".format(r_sq), style='italic',
-    #     bbox={'facecolor':'red', 'alpha':0.5, 'pad':5})
     plt.show()
 
 def prices():
-    pass
+    db = sqlite3.connect("LA_restaurants.db")
+    cursor = db.cursor()
+
+    price_counts = '''
+        SELECT
+        price,
+        count(1) as ct
+        FROM
+        restaurants
+        where price is not null and health_grade is ?
+        group by price
+        order by price asc;
+        '''
+    grade_distros = [('A', []), ('B', []), ('C', [])]
+    for val in grade_distros:
+        prices = cursor.execute(price_counts, (val[0],)).fetchall()
+        assert len(prices) == 4
+        data_pts = float(sum([p[1] for p in prices]))
+        val[1] = [p[1]/data_pts for p in prices]
+        # print(data_pts)
+        # for p in prices:
+        #     prior_value = 0
+        #     if a_distro:
+        #         prior_value = a_distro[-1]
+        #     a_distro.append(p[1]/data_pts + prior_value)
+
+    idx = np.arange(4)
+    height = .8
+    for dist in grade_distros
+        plt.barh(idx, dist[1], height, color=C_YELLOW)
+
+    db.close()
+    plt.title('Yelp Price vs Health Grade')
+    plt.xlabel('Health Score')
+    plt.ylabel('Average Number of Reviews')
+    plt.show()
     # Graph, Grade VS Price, where its normalized by total amount in that price range.
     # EG: $$$$ are 70% A, 30% B .
+
 # Comment which graphs you would like generated.
 if __name__ == '__main__':
     #category_bar_plot()
@@ -332,4 +356,5 @@ if __name__ == '__main__':
     #score_histogram()
     #yelp_score_distro()
     #avg_yelp_score_health_score()
-    review_vs_score_scatter()
+    #review_vs_score_scatter()
+    prices()
