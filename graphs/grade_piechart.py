@@ -20,7 +20,7 @@ def grade_pie():
     results = cursor.fetchall()
     labels, counts = zip(*results)
     print (labels)
-    _, texts, autotexts = plt.pie(counts, labels=labels, autopct='%1.1f%%', colors=[get_grade_color('A'),get_grade_color('B'),get_grade_color('C')])
+    _, texts, autotexts = plt.pie(counts, labels=labels, autopct='%1.1f%%', colors=[get_grade_color('A'), get_grade_color('B'), get_grade_color('C')])
     plt.axis('equal')
     for autotext in autotexts:
         autotext.set_color('white')
