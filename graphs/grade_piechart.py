@@ -4,6 +4,9 @@ import sqlite3
 from graphs_common import get_grade_color
 from graphs_common import RESTAURANTS_DB
 
+"""
+Pie chart of grades.
+"""
 def grade_pie():
     db = sqlite3.connect(RESTAURANTS_DB)
     cursor = db.cursor()

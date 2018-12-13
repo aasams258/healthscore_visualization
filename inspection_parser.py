@@ -1,6 +1,4 @@
-import csv
-import re
-import subprocess
+import csv, re, subprocess
 from collections import defaultdict
 
 '''
@@ -57,7 +55,7 @@ def is_chain(cleaned, chain_set):
 
 ''' 
 Identify which category data should fall in:
- * chain or independent
+chain or independent
 '''
 def classify_data(data, chain_set):
     # Want to sort into: chains, restaurants, markets.
@@ -90,14 +88,12 @@ health board category
 Note may not be fully accurate, as certain convenience stores serve food.
 '''
 def sort_market_or_restaurant(data):
-
     res_output = open('output/restaurants_indeps.csv', 'w')
     res_writer = csv.writer(res_output, delimiter=',')
     mkt_output = open('output/markets_indeps.csv', 'w')
     mkt_writer = csv.writer(mkt_output, delimiter=',')
     with open(data, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-        s = set()
         res = 0
         mkt = 0
         for row in reader:

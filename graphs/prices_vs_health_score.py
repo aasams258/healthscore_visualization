@@ -5,6 +5,7 @@ import matplotlib.patches as mpatches
 from graphs_common import RESTAURANTS_DB
 
 '''
+Horizontal Bar Chart Price breakdown by Grade
 '''
 def prices():
     db = sqlite3.connect(RESTAURANTS_DB)

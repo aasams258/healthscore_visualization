@@ -1,3 +1,4 @@
+# Helper class for all graphs
 from numpy import polyfit, poly1d # For lin regressions.
 
 A_BLUE ='#036AD1'

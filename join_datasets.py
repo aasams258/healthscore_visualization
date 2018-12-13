@@ -1,9 +1,9 @@
 '''
 
-Strip down both the data to essentials.
-Insert it into an existsing DB, in this case one created from restaurant_schema.sql.
+Strip down the data to essentials.
+Insert them into an existing DB, in this case one created from restaurant_schema.sql.
 
-If we ever run this for chains/markets, change the value IS_PARSING_CHAINS
+If I ever run this for chains/markets, change the value IS_PARSING_CHAINS
 
 '''
 import csv

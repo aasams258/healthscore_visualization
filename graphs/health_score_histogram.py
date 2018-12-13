@@ -6,6 +6,9 @@ import matplotlib.patches as mpatches
 from graphs_common import RESTAURANTS_DB
 from graphs_common import get_grade_color
 
+"""
+Health Score Histogram
+"""
 def score_histogram():
     db = sqlite3.connect(RESTAURANTS_DB)
     cursor = db.cursor()

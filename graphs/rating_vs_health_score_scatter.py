@@ -7,6 +7,9 @@ from graphs_common import RESTAURANTS_DB
 from graphs_common import get_grade_color
 from graphs_common import regression
 
+"""
+Plot the average yelp review for a health score.
+"""
 def avg_yelp_score_health_score():
     db = sqlite3.connect(RESTAURANTS_DB)
     cursor = db.cursor()

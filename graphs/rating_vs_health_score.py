@@ -5,6 +5,9 @@ import matplotlib.patches as mpatches
 
 from graphs_common import RESTAURANTS_DB
 
+"""
+Plot Yelp Review Score Vs Health Score
+"""
 def yelp_score_v_health_score():
     colors = {1: '#FF0000', 2: '#FF7700', 3: '#FFFF00', 4: '#7FFF00', 5: '#03a503'}
     db = sqlite3.connect(RESTAURANTS_DB)

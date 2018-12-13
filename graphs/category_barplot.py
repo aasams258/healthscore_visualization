@@ -44,6 +44,9 @@ def _load_breakdown_data(categories):
     db.close()
     return(a_grades, b_grades, c_grades, category_names)
 
+"""
+Category vs Grade bar plot.
+"""
 def category_bar_plot():
     # Include "tradamerican", "newamerican"?
     category_alias = ["mexican", "chinese", "japanese", "korean", "thai", 
