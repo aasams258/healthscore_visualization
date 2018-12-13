@@ -18,6 +18,7 @@ output/
 
 # VSCode stuff
 .vscode/
+.vscode
 
 # Notebooks stuff
 .ipynb_checkpoints/
